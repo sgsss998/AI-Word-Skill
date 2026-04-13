@@ -46,7 +46,7 @@ def replace_in_paragraph(paragraph, old_text, new_text):
 
 ### 2.3 跨 run 替换（进阶）
 
-当「某城市名」被拆成 run[0]="某城" + run[1]="市" 时：
+当“某城市名”被拆成 run[0]="某城" + run[1]="市" 时：
 
 ```python
 def replace_cross_runs(paragraph, old_text, new_text):
