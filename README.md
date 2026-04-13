@@ -1,5 +1,7 @@
 # AI-Word-Skill
 
+**English version:** [README.en.md](README.en.md)
+
 <a id="tldr"></a>
 ## 开篇：痛点、本仓库解决什么、为什么值得看
 
