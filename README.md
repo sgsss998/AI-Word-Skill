@@ -1,7 +1,6 @@
-# AI-Word-SOP Skill
+# AI-Word-Skill
 
-在 **不破坏 Word 版式** 的前提下，用 **Python（`python-docx`）** 批量改 `.docx` 的可复现流程与代码模板。  
-（GitHub 仓库 slug 为 `AI-Word-SOP-Skill`，因平台不允许仓库名含空格。）
+在 **不破坏 Word 版式** 的前提下，用 **Python（`python-docx`）** 批量改 `.docx` 的可复现流程与代码模板。
 
 ## 你在解决什么问题
 
