@@ -1,124 +1,124 @@
 # AI-Word-Skill
 
-**English version:** [README.en.md](README.en.md)
+**简体中文 (Simplified Chinese):** [README.zh-CN.md](README.zh-CN.md)
 
 <a id="tldr"></a>
-## 开篇：痛点、本仓库解决什么、为什么值得看
+## TL;DR: pain points, what this repo fixes, why it matters
 
-### 一、日常直接用 AI 编辑 Word，你通常会撞上什么问题
+### I. What usually goes wrong when you let AI edit Word directly
 
-- **语义层面**：AI 改完读起来“好像没问题”。  
-- **版式层面**：一打开就像**换了个排版师**——这里对不齐、那里中英文字体串味、段前段后与行距漂移、标题/编号层级怪怪的，甚至整篇落回 **Calibri**；多改几轮，每一版和母版都“差一点”。  
-- **结构层面**：**表格、页眉页脚、文本框**里的字没同步改到，或工具链根本扫不到，留下“半新半旧”的雷。  
-- **协作层面**：对内对外交付时，**可信度与返工成本**都吃亏——你要解释的不是观点，而是“为什么格式又变了”。
+- **Semantics:** the draft reads like it “mostly makes sense.”
+- **Layout:** you open the file and it looks like a **different person did the layout**—misaligned blocks, mixed CJK/Latin fonts, drifting spacing before/after paragraphs and line spacing, odd heading/list levels, or the whole document falling back to **Calibri**; after a few rounds, every export is “almost” like the template but not quite.
+- **Structure:** text in **tables, headers/footers, and text boxes** is not updated, or your toolchain never sees it—leaving a **half-old, half-new** landmine.
+- **Collaboration:** **trust and rework cost** suffer on delivery—you end up explaining not the substance, but **“why the format changed again.”**
 
-### 二、本 Skill（本仓库）主要解决哪些问题
+### II. What this Skill (this repo) is for
 
-1. **把“改字”和“毁版式”拆开**：在**已有格式母版**的 `.docx` 副本上改内容，避免 `Document()` 从零拼、避免整段 `paragraph.text =` 这类常见毁 `rPr` 写法。  
-2. **给一套可照抄的工程顺序**：单 run 替换 → 跨 run 替换 → 整段重写（保留首 run）→ `deepcopy` 插入段落 → **同步遍历表格**。  
-3. **给可验收的对照物**：脚本在同一母版上生成 **“SOP 改写”vs“整段赋值踩坑”** 两份文件，用 Word 并排打开，**一眼看清差异从哪来**。
+1. **Separate “changing words” from “destroying layout”:** edit a **copy of an already-styled** `.docx` template; avoid building from `Document()` from scratch and avoid wholesale `paragraph.text = ...` patterns that commonly wipe `rPr`.
+2. **A copy-pasteable engineering order:** single-run replace → cross-run replace → full-paragraph rewrite (keep first run) → `deepcopy` to insert paragraphs → **walk tables in parallel**.
+3. **Something you can eyeball:** the script builds two files from the same template—**“SOP rewrite” vs “whole-paragraph assignment pitfall”**—open them side by side in Word to **see exactly where the difference comes from.**
 
-### 三、为什么有价值、核心价值点在哪
+### III. Value and core stance
 
-| 维度 | 价值 |
-|------|------|
-| **时间** | 少做一整轮“全篇重排”或“手工对齐到哭” |
-| **质量** | 合同、纪要、公文、标书等场景下，**版式稳定≈专业度** |
-| **可解释** | 出问题能对上 **OOXML / run / 样式** 的原因，不靠玄学 |
-| **核心抓手** | **母版副本 + 尽量只动 `run.text`（必要时清空同段其余 run）+ 表格别漏**——这是本仓库的技术立场 |
+| Dimension | Value |
+|-----------|--------|
+| **Time** | fewer full-document re-layouts or painful manual alignment passes |
+| **Quality** | for contracts, minutes, official docs, and bids, **stable layout ≈ professionalism** |
+| **Explainability** | failures map to **OOXML / runs / styles**, not magic |
+| **Core lever** | **template copy + change `run.text` when possible (clear sibling runs if needed) + do not skip tables**—that is this repo’s technical position |
 
-**技术栈**：以 **`python-docx`** 为主；附录见 [`docs/`](docs/)。
-
----
-
-## 目录
-
-0. [开宗明义（痛点 / 解决什么 / 价值）](#tldr)  
-1. [问题与根因（OOXML 心智模型）](#1-问题与根因ooxml-心智模型)  
-2. [反模式：三种最常见的毁版式写法](#2-反模式三种最常见的毁版式写法)  
-3. [正确工作流（黄金路径）](#3-正确工作流黄金路径)  
-4. [操作手册：从易到难](#4-操作手册从易到难)  
-5. [插入新段落（`deepcopy` + `w:sectPr` 锚点）](#5-插入新段落deepcopy--wsectpr-锚点)  
-6. [表格、页眉页脚、文本框](#6-表格页眉页脚文本框)  
-7. [本仓库对照脚本在做什么](#7-本仓库对照脚本在做什么)  
-8. [交付前自检清单](#8-交付前自检清单)  
-9. [与 Pandoc 的关系](#9-与-pandoc-的关系)  
-10. [限制与边界](#10-限制与边界)  
-11. [快速开始](#11-快速开始)  
-12. [许可与免责](#12-许可与免责)
+**Stack:** primarily **`python-docx`**; deeper notes live under [`docs/`](docs/).
 
 ---
 
-## 1. 问题与根因（OOXML 心智模型）
+## Contents
 
-### 1.1 你到底遇到了什么问题（现象层）
-
-让 AI 帮忙编辑、生成一份 Word 文档，**正文读起来没大问题**，但版式却像“换了个人排版”：这里对不齐、那里中英文字体串味、段落缩进漂移、标题层级怪怪的，甚至整篇默认成 Calibri……**一眼 AI，二手尴尬**。
-
-这类问题的本质是：**字改对了，但 Word 底层的版式载体（run、段落样式、段落属性）被工具链无意间拆掉了或换成了默认值**，所以肉眼看起来就像换了一个排版师重排过一版。
-
-### 1.2 根因（结构层：OOXML 心智模型）
-
-`.docx` 本质是 **ZIP + OOXML（XML）**。你在 Word 里看到的一段连续文字，在 XML 里通常是：
-
-- 一个段落 **`w:p`**  
-  - 下面挂多个文字运行 **`w:r`（run）**  
-    - 每个 run 可有独立的 **`w:rPr`（run 属性）**：中文字体（eastAsia）、西文字体、字号、加粗、颜色、语言标记等  
-  - 段落本身还有 **`w:pPr`**：对齐、段前段后、行距、样式引用等  
-
-因此：
-
-- **同一段里前半宋体、后半加粗**：往往是 **多个 run**，不是一整段无结构的纯文本。  
-- **版式漂移**多数是 **run 结构被重建** 或 **新段落走了默认样式**，而不是单纯“字写错了”。
-
-`python-docx` 暴露的 `paragraph.runs` 基本对应上述 `w:r` 序列；**改 `run.text` 通常保留该 run 的 `rPr`**——这也是本仓库主张“母版 + run 级改写”的技术出发点。
+0. [TL;DR (pain / fix / value)](#tldr)  
+1. [Problem and root cause (OOXML mental model)](#1-problem-and-root-cause-ooxml-mental-model)  
+2. [Anti-patterns: three common ways to break layout](#2-anti-patterns-three-common-ways-to-break-layout)  
+3. [Correct workflow (golden path)](#3-correct-workflow-golden-path)  
+4. [Playbook: easy to hard](#4-playbook-easy-to-hard)  
+5. [Inserting paragraphs (`deepcopy` + `w:sectPr` anchor)](#5-inserting-paragraphs-deepcopy--wsectpr-anchor)  
+6. [Tables, headers/footers, text boxes](#6-tables-headersfooters-text-boxes)  
+7. [What the comparison script does](#7-what-the-comparison-script-does)  
+8. [Pre-delivery checklist](#8-pre-delivery-checklist)  
+9. [Relationship to Pandoc](#9-relationship-to-pandoc)  
+10. [Limits and boundaries](#10-limits-and-boundaries)  
+11. [Quick start](#11-quick-start)  
+12. [License and disclaimer](#12-license-and-disclaimer)
 
 ---
 
-## 2. 反模式：三种最常见的毁版式写法
+## 1. Problem and root cause (OOXML mental model)
 
-### 2.1 `paragraph.text = "新全文"`
+### 1.1 What you are seeing (symptoms)
 
-`python-docx` 在实现上往往会 **清掉该段下原有 `w:r` 再新建 run**。结果是：
+You ask AI to edit or generate a Word file; **the body reads mostly fine**, but the layout looks like “someone else typeset it”: misalignment, mixed fonts, drifting indents, odd heading levels, or everything defaulting to Calibri—**looks AI-generated, feels awkward in real meetings.**
 
-- 段落级 `pPr` 可能还在，但 **run 级 `rPr`（尤其 eastAsia 字体、混排）容易丢失**  
-- 与同一文档里其它“手工排版段”观感不一致  
+The essence: **the words are right, but the layout carriers underneath (runs, paragraph styles, paragraph properties) were torn down or reset to defaults by the toolchain**, so visually it looks like a full re-layout.
 
-**结论**：除非你很确定该段只需要默认格式，否则不要用整段赋值做批量主路径。
+### 1.2 Root cause (structure: OOXML)
 
-### 2.2 `Document()` 从零新建 + `add_paragraph(...)`
+A `.docx` is **ZIP + OOXML (XML)**. A paragraph you see in Word is usually:
 
-新段落通常落在 **Normal / 默认样式**，中英文字体、段前后距、编号样式很容易和母版不一致。
+- one paragraph **`w:p`**
+  - multiple text runs **`w:r`**
+    - each run can carry **`w:rPr`**: eastAsian font, Latin font, size, bold, color, language tags, etc.
+  - the paragraph also has **`w:pPr`**: alignment, spacing before/after, line spacing, style references, etc.
 
-**结论**：主交付物不要从空 `Document()` 拼出来；**应以现成 docx 为母版**。
+So:
 
-### 2.3 只遍历 `doc.paragraphs`，忽略 `doc.tables`
+- **First half Song, second half bold** in one paragraph is usually **multiple runs**, not one flat string.
+- **Layout drift** is mostly **rebuilt run structure** or **new paragraphs on default styles**, not “wrong characters.”
 
-表格单元格里同样是 `paragraph` / `run` 结构。只改正文会留下“表格外完美、表格里还是旧文案”。
-
-**结论**：正文 + **表格**双通道遍历。
+`paragraph.runs` in `python-docx` maps to that `w:r` sequence; **changing `run.text` usually keeps that run’s `rPr`**—that is why this repo pushes “template + run-level edits.”
 
 ---
 
-## 3. 正确工作流（黄金路径）
+## 2. Anti-patterns: three common ways to break layout
+
+### 2.1 `paragraph.text = "new full text"`
+
+`python-docx` often **removes existing `w:r` under the paragraph and creates a new run**. Result:
+
+- paragraph-level `pPr` may survive, but **run-level `rPr` (especially eastAsian fonts and mixed scripts) is easy to lose**
+- the paragraph no longer matches other **hand-typeset** paragraphs in the same file
+
+**Conclusion:** unless you are sure the paragraph only needs default formatting, do not use whole-paragraph assignment as your bulk main path.
+
+### 2.2 `Document()` from scratch + `add_paragraph(...)`
+
+New paragraphs usually land on **Normal / default styles**—CJK/Latin fonts, spacing before/after, and numbering drift from the template.
+
+**Conclusion:** do not assemble the main deliverable from an empty `Document()`; **start from an existing styled `.docx`.**
+
+### 2.3 Only walking `doc.paragraphs`, ignoring `doc.tables`
+
+Table cells use the same `paragraph` / `run` structure. Fixing body text only leaves “perfect outside the table, stale inside.”
+
+**Conclusion:** **body + tables**—two channels.
+
+---
+
+## 3. Correct workflow (golden path)
 
 ```
-shutil.copy(格式母版.docx, 输出.docx)
-doc = Document("输出.docx")
-# 仅改 run.text / rewrite_paragraph / deepcopy 插入 / 表格遍历
-doc.save("输出.docx")
+shutil.copy(template.docx, output.docx)
+doc = Document("output.docx")
+# only: run.text / rewrite_paragraph / deepcopy insert / table walk
+doc.save("output.docx")
 ```
 
-**心法一句话**：**Copy 原档 → 在副本上改 run 里的字 → 保存。**  
-母版可以是：公文模板、合同排版样例、会议纪要已定稿、任意“已在 Word 里调顺眼”的文件。
+**One-liner:** **Copy the file → edit text inside runs on the copy → save.**  
+The template can be an official letterhead, a contract layout sample, finalized meeting minutes, or any file that **already looks right in Word.**
 
 ---
 
-## 4. 操作手册：从易到难
+## 4. Playbook: easy to hard
 
-### 4.1 单 run 内替换（优先）
+### 4.1 Single-run replace (preferred)
 
-当 `old` 完整落在某个 `run.text` 里时，直接替换：
+When `old` fully sits inside one `run.text`:
 
 ```python
 def replace_in_paragraph(paragraph, old_text, new_text) -> bool:
@@ -129,23 +129,23 @@ def replace_in_paragraph(paragraph, old_text, new_text) -> bool:
     return False
 ```
 
-**适用**：占位符替换、专有名词批量替换、绝大多数“没拆 run”的场景。
+**Use for:** placeholders, batch proper-noun fixes, most cases where Word **did not split the match across runs.**
 
-### 4.2 跨 run 替换（必备）
+### 4.2 Cross-run replace (essential)
 
-Word 可能把“一个词”拆到两个 run（例如拼音、修订、粘贴来源混排）。此时需要：
+Word may split **one word** across two runs (pinyin, track changes, paste from mixed sources). Then you:
 
-1. 拼出段落完整字符串：`''.join(r.text for r in paragraph.runs)`  
-2. 找到 `old_text` 的字符区间，映射回涉及的 run 下标  
-3. **合并文本写回第一个 run**，其余涉及 run **清空**（避免重复输出）
+1. Join the paragraph: `''.join(r.text for r in paragraph.runs)`
+2. Find the span of `old_text`, map back to run indices
+3. **Write merged text into the first run**, **clear** the other affected runs (avoid duplicate output)
 
-完整实现见 [`docs/sop-python-docx-preserve-formatting.md`](docs/sop-python-docx-preserve-formatting.md) 第 2.3 节 `replace_cross_runs`。
+Full implementation: [`docs/sop-python-docx-preserve-formatting.md`](docs/sop-python-docx-preserve-formatting.md) section 2.3, `replace_cross_runs`.
 
-**经验**：凡是“明明在段落里却 `replace` 不到”优先怀疑 **跨 run**。
+**Rule of thumb:** if the text is “obviously there” but `replace` never fires, suspect **cross-run** first.
 
-### 4.3 整段重写：`rewrite_paragraph`（会议纪要 / 合同某条全文替换）
+### 4.3 Full-paragraph rewrite: `rewrite_paragraph` (minutes / full clause replace)
 
-当你必须整段替换，但仍希望继承该段“第一个 run”的字体 DNA：
+When you must replace the whole paragraph but still inherit the **first run’s** font DNA:
 
 ```python
 def rewrite_paragraph(paragraph, new_text: str) -> None:
@@ -156,14 +156,14 @@ def rewrite_paragraph(paragraph, new_text: str) -> None:
         run.text = ""
 ```
 
-**语义**：
+**Meaning:**
 
-- **保留** `runs[0]` 的 `rPr`（常见：正文首 run 的宋体/小四）  
-- **清空**其余 run，避免残留碎片字符  
+- **Keep** `runs[0]`’s `rPr` (common: body first run Song / size)
+- **Clear** the rest to avoid stray fragments
 
-**风险**：若该段原来靠多个 run 做“段内局部加粗”，重写后加粗结构会消失——这是取舍：版式批量生成通常优先“段级一致”，段内混排需改 XML 或接受母版预先合并样式。
+**Risk:** if the paragraph used multiple runs for **intra-paragraph bold**, that structure is gone after rewrite—trade-off: batch layout work usually prefers **paragraph-level consistency**; intra-paragraph mix needs XML work or a template that pre-merges styles.
 
-### 4.4 全文档替换（段落 + 表格）
+### 4.4 Whole-document replace (paragraphs + tables)
 
 ```python
 def replace_all(doc, old: str, new: str) -> int:
@@ -184,49 +184,49 @@ def replace_all(doc, old: str, new: str) -> int:
     return n
 ```
 
-**注意**：`python-docx` 对 **嵌套表格**、部分复杂版式的支持有限；遇到“改不到”要回到 OOXML 或手工在 Word 里调整母版。
+**Note:** `python-docx` has limited support for **nested tables** and some complex layouts; if you “cannot reach” a piece of text, fall back to OOXML or fix the template in Word.
 
 ---
 
-## 5. 插入新段落（`deepcopy` + `w:sectPr` 锚点）
+## 5. Inserting paragraphs (`deepcopy` + `w:sectPr` anchor)
 
-`doc.add_paragraph()` 可能：
+`doc.add_paragraph()` may:
 
-- 引用不存在的样式名 → `KeyError`  
-- 即使成功，也常与母版段落样式不一致  
+- reference a style name that does not exist → `KeyError`
+- even when it works, styles often do not match the template
 
-**推荐**：从母版里挑一段版式正确的段落，取其 `_element`（`w:p`）`deepcopy`，清空 `w:r` 后，再 `deepcopy` 模板里的一个 `w:r` 写入新文本，插入到 `body` 中 **`w:sectPr` 之前**。
+**Recommended:** pick a well-typeset paragraph from the template, `deepcopy` its `_element` (`w:p`), clear `w:r`, then `deepcopy` a template `w:r`, set new text, insert **before `w:sectPr`** in the body.
 
-**插入顺序陷阱**：
+**Ordering traps:**
 
-- `target.addprevious(new_p)` 在循环里容易导致顺序反转  
-- 更稳：`addnext` + **移动锚点**（每插一段，锚点变成新段）
+- `target.addprevious(new_p)` in a loop can reverse order
+- safer: `addnext` + **move the anchor** after each insert
 
-详见 [`docs/sop-python-docx-preserve-formatting.md`](docs/sop-python-docx-preserve-formatting.md) 第 4 节。
-
----
-
-## 6. 表格、页眉页脚、文本框
-
-| 区域 | `python-docx` 能力 | 实务建议 |
-|------|---------------------|----------|
-| 主文档表格 `doc.tables` | 多数常规表可遍历 | 同步遍历；合并单元格注意 `cell` 复用 |
-| 页眉页脚 | 支持有限 / 场景复杂 | 母版尽量固定；改动前备份；复杂需求考虑 OOXML 或 Word 自动化 |
-| 文本框 / 图形内文字 | 常不在 `paragraphs` | 需要 unpacked docx 后处理 `word/document.xml` 或避免把关键字段放文本框 |
+Details: [`docs/sop-python-docx-preserve-formatting.md`](docs/sop-python-docx-preserve-formatting.md) section 4.
 
 ---
 
-## 7. 本仓库对照脚本在做什么
+## 6. Tables, headers/footers, text boxes
 
-脚本：[`scripts/compare_sop_vs_paragraph_text.py`](scripts/compare_sop_vs_paragraph_text.py)
+| Area | `python-docx` capability | Practical advice |
+|------|----------------------------|------------------|
+| Main-body tables `doc.tables` | most normal tables are walkable | walk in sync; merged cells may reuse `cell` objects |
+| Headers/footers | limited / situational | keep templates stable; backup before edits; heavy cases → OOXML or Word automation |
+| Text boxes / text in shapes | often outside `paragraphs` | unpack `word/document.xml` or avoid putting critical fields only in text boxes |
 
-1. 读入你提供的 **`--template`**（必须是一份**已有排版**的 `.docx`）。  
-2. **复制两份**：  
-   - `compare-sop-rewrite-paragraph.docx`：对指定段落索引调用 `rewrite_paragraph`  
-   - `compare-bad-paragraph-text.docx`：对同索引调用 `paragraph.text = ...`  
-3. 用 Word **左右分屏打开**，对比字体/行距/run 级差异。
+---
 
-**重要限制**：脚本里 `BLOCKS` 按 **段落索引**（0,2,3,…）写入。你的母版若段落数量/顺序不同，需要改 `BLOCKS` 或改为“按段落文本特征查找”再改写。
+## 7. What the comparison script does
+
+Script: [`scripts/compare_sop_vs_paragraph_text.py`](scripts/compare_sop_vs_paragraph_text.py)
+
+1. Reads your **`--template`** (must be a **pre-styled** `.docx`).
+2. **Copies twice:**
+   - `compare-sop-rewrite-paragraph.docx`: calls `rewrite_paragraph` on selected paragraph indices
+   - `compare-bad-paragraph-text.docx`: same indices, `paragraph.text = ...`
+3. Open both in Word **side by side** and compare fonts, line spacing, and run-level differences.
+
+**Important limitation:** `BLOCKS` in the script writes by **paragraph index** (0, 2, 3, …). If your template’s paragraph count/order differs, edit `BLOCKS` or switch to “find by paragraph text signature” before rewriting.
 
 ```bash
 python3 -m venv .venv && source .venv/bin/activate
@@ -239,35 +239,35 @@ python scripts/compare_sop_vs_paragraph_text.py \
 
 ---
 
-## 8. 交付前自检清单
+## 8. Pre-delivery checklist
 
-- [ ] 全文检索旧占位符 / 旧公司名 / 旧项目代号是否残留（可在解压后的 `word/document.xml` 里 `rg`）。  
-- [ ] 抽查前 N 段：`runs[0]` 的 `font.name` / `font.size` 是否与母版一致（仅抽样，因部分属性在 XML 里不全暴露给 API）。  
-- [ ] 表格内是否替换完整（随机抽几个单元格）。  
-- [ ] 另存一份“只改一处”的对照文件，给业务同事肉眼验收。  
-
----
-
-## 9. 与 Pandoc 的关系
-
-`pandoc --reference-doc=母版.docx` **不等于**在母版上原地改字：结构会被 Pandoc 重新映射，中文缩进/列表/样式名仍可能偏。
-
-**建议**：
-
-- **强版式一致** → 走本仓库的黄金路径（`shutil.copy` + `python-docx` run 级）。  
-- **弱版式 / 内部草稿** → 可接受 Pandoc 偏差时再上 Pandoc。
+- [ ] Search the document for leftover placeholders / old company names / old project codes (you can `rg` inside unpacked `word/document.xml`).
+- [ ] Spot-check the first N paragraphs: does `runs[0]`’s `font.name` / `font.size` match the template (sampling only—some properties live only in XML).
+- [ ] Tables fully updated? spot-check random cells.
+- [ ] Save a “single change” diff file for a business reviewer to eyeball.
 
 ---
 
-## 10. 限制与边界
+## 9. Relationship to Pandoc
 
-- `python-docx` **不是** Word 排版器：复杂版式、内容控件、域、修订模式等，要么绕开，要么上 COM/AppleScript/手工。  
-- **修订模式（Track Changes）** 不是本仓库默认覆盖范围。  
-- 任何脚本 **不要**把密钥、内网路径、客户材料写进公开示例。
+`pandoc --reference-doc=template.docx` is **not** the same as in-place text edits on the template: Pandoc remaps structure; CJK indents, lists, and style names can still drift.
+
+**Suggestion:**
+
+- **Strong layout parity** → use this repo’s golden path (`shutil.copy` + run-level `python-docx`).
+- **Weak layout / internal drafts** → Pandoc is fine when you accept the deviation.
 
 ---
 
-## 11. 快速开始
+## 10. Limits and boundaries
+
+- `python-docx` is **not** a Word typesetter: complex layout, content controls, fields, revision mode—either avoid or use COM / AppleScript / manual Word.
+- **Track Changes** is not in scope by default.
+- Never commit secrets, internal paths, or client materials into public examples.
+
+---
+
+## 11. Quick start
 
 ```bash
 git clone https://github.com/sgsss998/AI-Word-Skill.git
@@ -282,14 +282,14 @@ python scripts/compare_sop_vs_paragraph_text.py \
   --out-dir ./out
 ```
 
-## 12. 许可与免责
+## 12. License and disclaimer
 
-- **许可**：MIT — 见 [`LICENSE`](LICENSE)。  
-- **免责**：本仓库仅为技术流程与示例代码，不构成法律意见；商业使用前请自行复核。
+- **License:** MIT — see [`LICENSE`](LICENSE).
+- **Disclaimer:** this repository is technical workflow and sample code only, not legal advice; verify before commercial use.
 
 ---
 
-## 延伸阅读（仓库内）
+## Further reading (in-repo)
 
-- [`docs/overview.md`](docs/overview.md) — 可读版总览  
-- [`docs/sop-python-docx-preserve-formatting.md`](docs/sop-python-docx-preserve-formatting.md) — 附录级技术细则（replace / cross-run / rewrite / 插入 / 表格 / 自检）
+- [`docs/overview.md`](docs/overview.md) — readable overview (Chinese)
+- [`docs/sop-python-docx-preserve-formatting.md`](docs/sop-python-docx-preserve-formatting.md) — deep technical appendix (Chinese): replace / cross-run / rewrite / insert / tables / checklist
