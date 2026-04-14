@@ -2,6 +2,19 @@
 
 **English (default):** [README.md](README.md)
 
+### 先看图：同一份母版、同一段替换正文，两种写法两种版式
+
+<p align="center">
+  <img src="docs/images/readme-compare-side-by-side.png" alt="并排对比：run 级改写保留中文字体与段落样式；整段 paragraph.text 赋值常退回到 Word 默认字体" width="920">
+</p>
+
+| 对比 | **左：SOP（`rewrite_paragraph`）** | **右：反模式（`paragraph.text =`）** |
+|------|--------------------------------------|--------------------------------------|
+| 效果 | 保留首 run 的 `rPr`，清空同段其余 run | 常**重建 run**，段内加粗 / 宋体等容易丢，整段像 **Calibri 默认** |
+| 适用 | 在**已排好版的 `.docx` 副本**上批量改字 | 仅当该段确实没有需要保留的 run 级格式 |
+
+**复现配图：** macOS 上执行 `python scripts/render_readme_compare_figure.py`（Quick Look 出缩略图后拼接）。核心对照脚本：[`scripts/compare_sop_vs_paragraph_text.py`](scripts/compare_sop_vs_paragraph_text.py)，演示母版：[`scripts/build_demo_template.py`](scripts/build_demo_template.py)。
+
 <a id="tldr"></a>
 ## 开篇：痛点、本仓库解决什么、为什么值得看
 
