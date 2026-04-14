@@ -2,18 +2,18 @@
 
 **简体中文 (Simplified Chinese):** [README.zh-CN.md](README.zh-CN.md)
 
-### Before you read: same template, same new text — two different Word outputs
+### Before you read: real Word, same story — two edit paths
 
 <p align="center">
-  <img src="docs/images/readme-compare-side-by-side.png" alt="Side-by-side first page: run-level rewrite keeps East Asian fonts and styling; paragraph.text assignment collapses toward Word defaults" width="920">
+  <img src="docs/images/readme-compare-side-by-side.png" alt="Microsoft Word side-by-side: left file used whole-paragraph assignment; right file used SOP run-level rewrite — title size, centering, and paragraph spacing differ sharply" width="1000">
 </p>
 
-| Lens | **Left — SOP (`rewrite_paragraph`)** | **Right — anti-pattern (`paragraph.text =`)** |
-|------|----------------------------------------|--------------------------------------------------|
-| What happens | Keeps `runs[0]`’s `rPr`, clears sibling runs | `python-docx` rebuilds runs; mixed **bold / 宋体** often collapses to defaults (**Calibri**) |
-| When to use | Batch edits on a **formatted template copy** | Only if the paragraph truly has no meaningful run-level styling |
+| Lens | **Left — pitfall (`paragraph.text =`)** | **Right — SOP (`rewrite_paragraph`, keep `runs[0]`)** |
+|------|------------------------------------------|--------------------------------------------------------|
+| What you see | Dense “wall of text”; title blends into body; weak hierarchy | Large centered title, clearer salutation/body rhythm, readable spacing — **template intent survives** |
+| Why | `python-docx` tends to **rebuild runs** and drop the `rPr` you depended on | Put new text in **`runs[0]`**, clear other runs — the **first run’s** fonts & paragraph marks anchor the look |
 
-**Reproduce:** `python scripts/render_readme_compare_figure.py` (macOS, uses Quick Look thumbnails). Under the hood: [`scripts/compare_sop_vs_paragraph_text.py`](scripts/compare_sop_vs_paragraph_text.py) + [`scripts/build_demo_template.py`](scripts/build_demo_template.py).
+**Automated mini-preview** (does not replace the hero image): `python scripts/render_readme_compare_figure.py` → `docs/images/readme-compare-autogen-quicklook.png` (macOS Quick Look). Core pair generator: [`scripts/compare_sop_vs_paragraph_text.py`](scripts/compare_sop_vs_paragraph_text.py) + [`scripts/build_demo_template.py`](scripts/build_demo_template.py).
 
 <a id="tldr"></a>
 ## TL;DR: pain points, what this repo fixes, why it matters

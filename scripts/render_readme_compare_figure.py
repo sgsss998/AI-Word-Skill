@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """
-Regenerate docs/images/readme-compare-side-by-side.png (macOS).
+Write docs/images/readme-compare-autogen-quicklook.png (macOS).
+
+This is a lightweight Quick Look collage for developers. The README hero image
+(`readme-compare-side-by-side.png`) is a separate, full Word desktop capture.
 
 Requires: python-docx, Pillow; system qlmanage (Quick Look) for .docx thumbnails.
 Run from repo root: python scripts/render_readme_compare_figure.py
@@ -56,8 +59,10 @@ def main() -> int:
     bad_png = IMG / "compare-bad-paragraph-text.docx.png"
     sop = Image.open(sop_png)
     bad = Image.open(bad_png)
-    h = max(sop.height, bad.height)
-    w1, w2 = sop.width, bad.width
+    # README convention: pitfall on the left, SOP on the right (matches hero screenshot).
+    left, right = bad, sop
+    w1, w2 = left.width, right.width
+    h = max(left.height, right.height)
     pad, label_h, gap, footer_h = 24, 56, 16, 28
     total_w = pad * 2 + w1 + gap + w2
     total_h = pad * 2 + label_h + h + footer_h
@@ -70,23 +75,23 @@ def main() -> int:
         font = ImageFont.load_default()
         font_sm = font
 
-    draw.text((pad, pad), "SOP: rewrite_paragraph (keep first run rPr)", fill=(15, 80, 15), font=font)
+    draw.text((pad, pad), "Anti-pattern: paragraph.text = (wipes runs)", fill=(120, 20, 20), font=font)
     draw.text(
         (pad + w1 + gap, pad),
-        "Anti-pattern: paragraph.text = (wipes runs)",
-        fill=(120, 20, 20),
+        "SOP: rewrite_paragraph (keep first run rPr)",
+        fill=(15, 80, 15),
         font=font,
     )
     y0 = pad + label_h
-    canvas.paste(sop, (pad, y0))
-    canvas.paste(bad, (pad + w1 + gap, y0))
+    canvas.paste(left, (pad, y0))
+    canvas.paste(right, (pad + w1 + gap, y0))
     draw.text(
         (pad, y0 + h + 8),
         "Same template & replacement text · macOS Quick Look preview of .docx first page",
         fill=(80, 80, 80),
         font=font_sm,
     )
-    final = IMG / "readme-compare-side-by-side.png"
+    final = IMG / "readme-compare-autogen-quicklook.png"
     canvas.save(final, "PNG", optimize=True)
     for p in (sop_png, bad_png):
         p.unlink(missing_ok=True)
