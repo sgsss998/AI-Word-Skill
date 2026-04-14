@@ -15,6 +15,25 @@
 
 **自动小图预览**（不覆盖上方主图）：macOS 上 `python scripts/render_readme_compare_figure.py` → `docs/images/readme-compare-autogen-quicklook.png`。成对 docx：[`scripts/compare_sop_vs_paragraph_text.py`](scripts/compare_sop_vs_paragraph_text.py)、演示母版：[`scripts/build_demo_template.py`](scripts/build_demo_template.py)。
 
+### 两篇公开公众号文 → 同一套会议纪要母版 → 两种写入方式
+
+**AI干货家老明** 两篇原文（清洗后的节选，见 [`demo/article-sources/`](demo/article-sources/)）写入**同一份**已排版 `.docx`：**左** `paragraph.text =`，**右** `rewrite_paragraph`（SOP）。下图由 macOS Quick Look 对脚本成对导出的 `.docx` 生成（[`scripts/build_wechat_article_pairs.py`](scripts/build_wechat_article_pairs.py)）。
+
+**第一篇** — [AI 时代，鼓吹文科生有用的是纯扯淡](https://mp.weixin.qq.com/s/zoG31kifchxAizD5dSbpAA)
+
+<p align="center">
+  <img src="docs/images/compare-wechat-01-liberal-arts.png" alt="公众号文节选写入母版：整段赋值 vs SOP" width="1100">
+</p>
+
+**第二篇** — [基于本地的个人RAG数据库实践：效果不尽如人意](https://mp.weixin.qq.com/s/uCtNiviw11VtvhzV2__zJQ)
+
+<p align="center">
+  <img src="docs/images/compare-wechat-02-rag-local.png" alt="公众号长文节选写入母版：整段赋值 vs SOP" width="1100">
+</p>
+
+**复现 docx 成对文件**（母版路径换成本机绝对路径）：  
+`python scripts/build_wechat_article_pairs.py --template "/你的路径/sop 测试母版-模板.docx" --out-dir demo/out-wechat`
+
 <a id="tldr"></a>
 ## 开篇：痛点、本仓库解决什么、为什么值得看
 

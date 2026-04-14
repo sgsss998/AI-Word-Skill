@@ -4,3 +4,5 @@ __pycache__/
 .DS_Store
 out/
 demo/out/
+demo/out-wechat/
+tmpql/
