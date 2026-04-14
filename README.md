@@ -15,24 +15,26 @@
 
 **Automated mini-preview** (does not replace the hero image): `python scripts/render_readme_compare_figure.py` → `docs/images/readme-compare-autogen-quicklook.png` (macOS Quick Look). Core pair generator: [`scripts/compare_sop_vs_paragraph_text.py`](scripts/compare_sop_vs_paragraph_text.py) + [`scripts/build_demo_template.py`](scripts/build_demo_template.py).
 
-### Two real WeChat articles → same meeting-style template → two pipelines
+### Two real WeChat articles (Markdown) — Pandoc vs SOP template
 
-Public posts by **AI干货家老明** (cleaned excerpts) are written into one formatted `.docx` **twice**: **left** = `paragraph.text =`, **right** = `rewrite_paragraph` (SOP). Previews: macOS Quick Look thumbnails of the exported pairs ([`scripts/build_wechat_article_pairs.py`](scripts/build_wechat_article_pairs.py) + sources under [`demo/article-sources/`](demo/article-sources/)).
+Same **Markdown** source for each post: **left** = default **`pandoc`** Word export (no `--reference-doc`), **right** = copy a **pre-styled meeting template** and fill with **`rewrite_paragraph`** (SOP / `python-docx`). The images below are **full Word desktop screenshots** (not Quick Look).
+
+Original posts by **AI干货家老明** — cleaned text also lives under [`demo/article-sources/`](demo/article-sources/). Optional excerpt → template pairs: [`scripts/build_wechat_article_pairs.py`](scripts/build_wechat_article_pairs.py).
 
 **Article 1** — [AI 时代，鼓吹文科生有用的是纯扯淡](https://mp.weixin.qq.com/s/zoG31kifchxAizD5dSbpAA)
 
 <p align="center">
-  <img src="docs/images/compare-wechat-01-liberal-arts.png" alt="WeChat article 1 excerpt in meeting template: paragraph.text vs SOP" width="1100">
+  <img src="docs/images/compare-wechat-01-liberal-arts.png" alt="Word desktop: left 01-…-非SOP-pandoc.docx, right 01-…-SOP-母版.docx" width="1100">
 </p>
 
 **Article 2** — [基于本地的个人RAG数据库实践：效果不尽如人意](https://mp.weixin.qq.com/s/uCtNiviw11VtvhzV2__zJQ)
 
 <p align="center">
-  <img src="docs/images/compare-wechat-02-rag-local.png" alt="WeChat article 2 excerpt in meeting template: paragraph.text vs SOP" width="1100">
+  <img src="docs/images/compare-wechat-02-rag-local.png" alt="Word desktop: left 02-…-非SOP-pandoc.docx, right 02-…-SOP-母版.docx" width="1100">
 </p>
 
-**Reproduce the `.docx` pairs** (template path is yours):  
-`python scripts/build_wechat_article_pairs.py --template "/absolute/path/to/sop 测试母版-模板.docx" --out-dir demo/out-wechat`
+**Reproduce excerpt-based `.docx` pairs in-repo** (your absolute template path):  
+`python scripts/build_wechat_article_pairs.py --template "/path/to/sop 测试母版-模板.docx" --out-dir demo/out-wechat`
 
 <a id="tldr"></a>
 ## TL;DR: pain points, what this repo fixes, why it matters
