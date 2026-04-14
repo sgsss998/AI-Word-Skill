@@ -5,7 +5,7 @@
 ### Before you read: real Word, same story — two edit paths
 
 <p align="center">
-  <img src="docs/images/readme-compare-side-by-side.png" alt="Microsoft Word side-by-side: left file used whole-paragraph assignment; right file used SOP run-level rewrite — title size, centering, and paragraph spacing differ sharply" width="1000">
+  <img src="docs/images/readme-hero-word-desktop.png" alt="Microsoft Word side-by-side: left file used whole-paragraph assignment; right file used SOP run-level rewrite — title size, centering, and paragraph spacing differ sharply" width="1100">
 </p>
 
 | Lens | **Left — pitfall (`paragraph.text =`)** | **Right — SOP (`rewrite_paragraph`, keep `runs[0]`)** |
