@@ -3,7 +3,7 @@
 Write docs/images/readme-compare-autogen-quicklook.png (macOS).
 
 This is a lightweight Quick Look collage for developers. The README hero image
-(`readme-hero-word-desktop.png`) is a separate, full Word desktop capture.
+(`readme-hero-word-desktop.jpg`) is a separate, full Word desktop capture.
 
 Requires: python-docx, Pillow; system qlmanage (Quick Look) for .docx thumbnails.
 Run from repo root: python scripts/render_readme_compare_figure.py

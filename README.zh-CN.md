@@ -5,7 +5,7 @@
 ### 先看图：真机 Word 并排，同一篇正文，两种改法
 
 <p align="center">
-  <img src="docs/images/readme-hero-word-desktop.png" alt="Word 并排：左为整段 paragraph.text 踩坑版；右为按 SOP 保 run 改写版，标题层级与段间距对比非常明显" width="1100">
+  <img src="docs/images/readme-hero-word-desktop.jpg" alt="Word 并排：左为整段 paragraph.text 踩坑版；右为按 SOP 保 run 改写版，标题层级与段间距对比非常明显" width="1100">
 </p>
 
 | 对比 | **左：踩坑（`paragraph.text =`）** | **右：SOP（`rewrite_paragraph`，保首 run）** |
