@@ -2,6 +2,8 @@
 
 **简体中文 (Simplified Chinese):** [README.zh-CN.md](README.zh-CN.md)
 
+![AI-Word-Skill cover](./cover-ai-word-skill-v1.png)
+
 ### Before you read: real Word, same story — two edit paths
 
 <p align="center">
@@ -327,3 +329,17 @@ python scripts/compare_sop_vs_paragraph_text.py \
 
 - [`docs/overview.md`](docs/overview.md) — readable overview (Chinese)
 - [`docs/sop-python-docx-preserve-formatting.md`](docs/sop-python-docx-preserve-formatting.md) — deep technical appendix (Chinese): replace / cross-run / rewrite / insert / tables / checklist
+
+---
+
+WeChat: `soplaoming`  
+| WeChat QR | Payment QR |
+|---|---|
+| ![WeChat QR](./wechat-qrcode.jpg) | ![Payment QR](./wechat-pay-qrcode.jpg) |
+
+---
+
+WeChat: `soplaoming`  
+| WeChat QR | Payment QR |
+|---|---|
+| ![WeChat QR](./wechat-qrcode.jpg) | ![Payment QR](./wechat-pay-qrcode.jpg) |

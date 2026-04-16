@@ -2,6 +2,8 @@
 
 **English (default):** [README.md](README.md)
 
+![AI-Word-Skill 封面](./cover-ai-word-skill-v1.png)
+
 ### 先看图：真机 Word 并排，同一篇正文，两种改法
 
 <p align="center">
@@ -327,3 +329,10 @@ python scripts/compare_sop_vs_paragraph_text.py \
 
 - [`docs/overview.md`](docs/overview.md) — 可读版总览  
 - [`docs/sop-python-docx-preserve-formatting.md`](docs/sop-python-docx-preserve-formatting.md) — 附录级技术细则（replace / cross-run / rewrite / 插入 / 表格 / 自检）
+
+---
+
+微信号：`soplaoming`  
+| 微信二维码 | 收款码 |
+|---|---|
+| ![微信二维码](./wechat-qrcode.jpg) | ![收款码](./wechat-pay-qrcode.jpg) |
