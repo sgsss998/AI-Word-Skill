@@ -336,10 +336,3 @@ WeChat: `soplaoming`
 | WeChat QR | Payment QR |
 |---|---|
 | ![WeChat QR](./wechat-qrcode.jpg) | ![Payment QR](./wechat-pay-qrcode.jpg) |
-
----
-
-WeChat: `soplaoming`  
-| WeChat QR | Payment QR |
-|---|---|
-| ![WeChat QR](./wechat-qrcode.jpg) | ![Payment QR](./wechat-pay-qrcode.jpg) |
